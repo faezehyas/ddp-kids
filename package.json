@@ -1,0 +1,16 @@
+{
+  "name": "ddp-kids",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Word-free board games for children aged 3 to 6: a static Node server on Wasmer Edge, games in the browser",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js",
+    "test": "node --test \"public/**/*.test.js\" \"test/*.test.js\"",
+    "test:browser": "node --test test/browser/*.test.js",
+    "test:all": "npm test && npm run test:browser"
+  }
+}
