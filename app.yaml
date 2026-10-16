@@ -1,0 +1,19 @@
+kind: wasmer.io/App.v0
+name: ddp-kids
+owner: faezeh_yass
+package: .
+# Static files only; one region is enough for now.
+locality:
+  regions:
+    - fr-roub1
+health_checks:
+  - http:
+      method: get
+      path: /healthz
+      interval: 60s
+      timeout: 10s
+      unhealthy_threshold: 3
+      healthy_threshold: 1
+      expected_status_codes:
+        - 200
+      expected_body_includes: '"ok":true'
