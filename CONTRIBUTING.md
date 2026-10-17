@@ -34,17 +34,26 @@ Screenshots go to `test-artifacts/`, which git ignores.
 An outline for now; the first game fills in the details.
 
 1. **Folder:** `public/<game>/` with `index.html`, `style.css`, `rules.js`,
-   `lessons.js`, `pieces.js` and `sounds.js`.
+   `lessons.js`, `pieces.js` and the page's script.
 2. **Rules:** pure functions in `rules.js`, unit-tested in `rules.test.js`
    next to it; bad input throws `RuleError`.
 3. **Stages:** data in `lessons.js`, read by the game's page.
-4. **Art and sound:** shapes in `pieces.js`; sounds in `sounds.js`, played
-   through `engine/sound.js`.
-5. **Browser test:** `test/browser/<game>.test.js` opens the game with
+4. **Page:** `index.html` links `/engine/theme.css` before its own
+   `style.css` and loads its script with `<script type="module">`. The
+   script builds the screen from the [engine](ARCHITECTURE.md#engine):
+   `createBoard()` in a box the page sizes (phone portrait first),
+   `listen()` for taps, drags and keys, and `createHand()` to show a move.
+   Colours, sizes and timings come only from the tokens in `theme.css`.
+5. **Art and sound:** each piece is SVG markup in `pieces.js`, which the
+   board also draws as the piece's shadow. Sounds are the engine's: `play()`
+   from `engine/sound.js` with `land`, `fit`, `arrive` or `nope`. A new
+   sound goes into `SOUNDS` in `engine/sound.js`, where its test keeps it
+   under the loudness limit.
+6. **Browser test:** `test/browser/<game>.test.js` opens the game with
    `openPage()` on all three devices and calls `assertNoWords()` and
    `assertNoSideScroll()`.
-6. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
+7. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
    4-year-old would: tap fast, tap wrong squares, drag off the board, and
    leave it alone for a while.
-7. **Docs:** move the game in [GAMES.md](GAMES.md) and open the PR with the
+8. **Docs:** move the game in [GAMES.md](GAMES.md) and open the PR with the
    template's checklist.

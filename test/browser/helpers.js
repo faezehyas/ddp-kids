@@ -4,6 +4,7 @@
 // a local install or the global one, and without it the tests skip.
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
+import http from "node:http";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { after } from "node:test";
@@ -17,9 +18,19 @@ export const DEVICES = {
 
 export const ARTIFACTS = path.resolve("test-artifacts");
 
-// The real server on a free port. publicDir swaps in other files.
+const FIXTURES = path.resolve("test/browser/fixtures");
+
+// The real server on a free port, which also serves the test pages in
+// fixtures/ under /fixtures/; the site never does. publicDir swaps in other
+// files.
 export async function startServer({ publicDir } = {}) {
-  const server = createApp({ publicDir });
+  const site = createApp({ publicDir });
+  const fixtures = createApp({ publicDir: FIXTURES });
+  const server = http.createServer((req, res) => {
+    if (!req.url.startsWith("/fixtures/")) return site.emit("request", req, res);
+    req.url = req.url.slice("/fixtures".length);
+    fixtures.emit("request", req, res);
+  });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   return {
     base: `http://127.0.0.1:${server.address().port}`,

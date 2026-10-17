@@ -1,0 +1,13 @@
+/* Phone first: the board at the top, below room for the home and parent
+   buttons a game page has. */
+.stage {
+  position: fixed;
+  inset: 0;
+  padding: calc(var(--target) + 16px) 12px 12px;
+}
+.clay {
+  fill: var(--clay);
+}
+.clay-dark {
+  fill: var(--clay-dark);
+}
