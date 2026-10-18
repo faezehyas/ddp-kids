@@ -1,0 +1,379 @@
+/* Paper and clay: the tokens, the base page, the board, its marks and pieces,
+   the ghost hand, and reduced motion. Light only. Every colour, size and
+   timing on the site comes from the tokens below; board.js and hand.js read
+   the timings from here too. */
+:root {
+  color-scheme: light;
+
+  /* Paper and sand; clay for the child's pieces, sage for where they can go,
+     honey for goals, ink for the other side. */
+  --paper: #f4eee3;
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .28 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tray: #e2d6c2;
+  --tray-edge: #d6c8b0;
+  --tray-shade: rgba(120, 95, 60, 0.1);
+  --sand: #ede3d1;
+  --sand-dark: #dcccb0;
+  --sand-deep: #cdbb9c;
+  --clay: #c9694c;
+  --clay-dark: #a65239;
+  --clay-light: #da8b6e;
+  --clay-shade: rgba(166, 82, 57, 0.22);
+  --sage: #93a98b;
+  --sage-dark: #7d9375;
+  --honey: #e4b85e;
+  --honey-dark: #c99a3e;
+  --honey-square: #ebc87c;
+  --ink: #3e3a34;
+  --ink-light: #5c564d;
+  --line: #c4b497;
+  --faint: #c9bba3;
+
+  /* Sizes. Board sizes are fractions of the board's width. */
+  --target: 64px;
+  --font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --board-r: 18px;
+  --board-pad: 0.026;
+  --board-gap: 0.008;
+  --square-r: 17%;
+  --dot-size: 33%;
+  --dot-opacity: 0.85;
+  --shadow-line: 1.9;
+  --shadow-dash: 2.8 2.2;
+  --ring: 3px;
+  --hand-opacity: 0.33;
+  --drag-start: 6px;
+
+  /* Motion. */
+  --ease-move: cubic-bezier(0.3, 1.3, 0.6, 1);
+  --ease-pop: cubic-bezier(0.3, 1.5, 0.6, 1);
+  --move: 420ms;
+  --fade: 220ms;
+  --lift: 250ms;
+  --land: 340ms;
+  --wiggle: 400ms;
+  --hop: 420ms;
+  --dot-step: 60ms;
+  --dot-pop: 380ms;
+  --fit: 700ms;
+  --fill: 500ms;
+  --breathe: 2800ms;
+  --pulse: 1200ms;
+  --hand: 700ms;
+  --hand-drag: 850ms;
+  --hand-press: 350ms;
+  --hand-rest: 450ms;
+  --hand-fade: 400ms;
+}
+
+/* ---- The base page ---- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  background: var(--paper-grain), var(--paper);
+  color: var(--ink);
+  font: 17px/1.5 var(--font);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+[data-parent] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* ---- The board ---- */
+
+/* The box the game gives the board: the board fits inside it, centred. */
+.board-host {
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+.board {
+  --size: min(100cqw, 100cqh * var(--cols) / var(--rows));
+  position: relative;
+  display: grid;
+  grid-template: repeat(var(--rows), 1fr) / repeat(var(--cols), 1fr);
+  gap: max(2px, var(--size) * var(--board-gap));
+  width: var(--size);
+  aspect-ratio: var(--cols) / var(--rows);
+  padding: calc(var(--size) * var(--board-pad));
+  border-radius: var(--board-r);
+  background: var(--tray);
+  box-shadow: 0 2px 0 var(--tray-edge), 0 10px 30px var(--tray-shade);
+  touch-action: none;
+  cursor: pointer;
+}
+.board:focus-visible {
+  outline: none;
+}
+.sq {
+  border-radius: var(--square-r);
+  background: var(--sand);
+}
+.sq.dark {
+  background: var(--sand-dark);
+}
+
+/* Marks, under the pieces: filled squares, outlines, dots, shadows, pulses. */
+.mark {
+  pointer-events: none;
+}
+.mark.fill {
+  z-index: 1;
+  border-radius: var(--square-r);
+  background: var(--honey-square);
+  animation: fill-in var(--fill) ease-out;
+}
+.mark.outline {
+  z-index: 2;
+  border-radius: var(--square-r);
+  box-shadow: inset 0 0 0 var(--ring) var(--sage-dark);
+}
+.mark.dot {
+  z-index: 3;
+  place-self: center;
+  width: var(--dot-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--sage);
+  opacity: var(--dot-opacity);
+  animation: pop var(--dot-pop) var(--ease-pop) calc(var(--ring-n, 0) * var(--dot-step)) both;
+}
+.mark.shadow,
+.mark.pulse {
+  z-index: 4;
+}
+.mark .art {
+  width: 100%;
+  height: 100%;
+  animation: breathe var(--breathe) ease-in-out infinite;
+}
+/* A shadow is the piece's own art, drawn as a dashed honey outline. */
+.mark.shadow svg * {
+  fill: var(--honey);
+  fill-opacity: 0.2;
+  stroke: var(--honey-dark);
+  stroke-width: var(--shadow-line);
+  stroke-dasharray: var(--shadow-dash);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: none;
+  transition: fill-opacity var(--fade) ease, stroke-opacity var(--fade) ease;
+}
+/* The piece fits its shadow: it fills with honey and fades. */
+.mark.shadow.fit {
+  animation: fit-out var(--fit) ease forwards;
+}
+.mark.shadow.fit .art {
+  animation: none;
+}
+.mark.shadow.fit svg * {
+  fill-opacity: 1;
+  stroke-opacity: 0;
+}
+.mark.pulse {
+  border-radius: var(--square-r);
+  background: var(--honey);
+  opacity: 0;
+  animation: pulse var(--pulse) ease-in-out 2;
+}
+
+.piece {
+  z-index: 5;
+  cursor: grab;
+  touch-action: none;
+  transition: opacity var(--fade) ease;
+}
+.piece.moving {
+  z-index: 6;
+  transition: transform var(--move) var(--ease-move), opacity var(--fade) ease;
+}
+.piece.up {
+  z-index: 7;
+}
+.pin {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 0 var(--clay-shade));
+  transition: transform var(--lift) ease;
+}
+.pin svg,
+.mark .art svg,
+.hand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.piece.up .pin {
+  transform: scale(1.12) translateY(-4%);
+}
+.pin.land {
+  animation: land var(--land) ease-out;
+}
+.pin.wiggle {
+  animation: wiggle var(--wiggle) ease-in-out;
+}
+.pin.hop {
+  animation: hop var(--hop) ease-in-out;
+}
+
+/* The keyboard's focus ring. */
+.ring {
+  z-index: 8;
+  border-radius: var(--square-r);
+  box-shadow: 0 0 0 var(--ring) var(--clay-dark);
+  opacity: 0;
+  pointer-events: none;
+}
+.board:focus-visible .ring {
+  opacity: 1;
+}
+
+/* ---- The ghost hand ---- */
+
+.hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 9;
+  opacity: 0;
+  color: var(--ink);
+  pointer-events: none;
+  transition: transform var(--hand) ease-in-out, opacity var(--hand-fade) ease;
+}
+.hand.on {
+  opacity: 1;
+}
+.hand.drag {
+  transition-duration: var(--hand-drag), var(--hand-fade);
+}
+.hand i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: var(--hand-opacity);
+  transform-origin: 45% 5%;
+  transition: transform var(--lift) ease;
+}
+.hand.press i {
+  transform: scale(0.9);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: var(--dot-opacity);
+  }
+}
+@keyframes land {
+  0% {
+    transform: scale(1.1, 0.86);
+  }
+  55% {
+    transform: scale(0.97, 1.04);
+  }
+}
+@keyframes wiggle {
+  25% {
+    transform: rotate(-7deg);
+  }
+  75% {
+    transform: rotate(7deg);
+  }
+}
+@keyframes hop {
+  50% {
+    transform: scale(1.2) translateY(-18%);
+  }
+}
+@keyframes breathe {
+  50% {
+    transform: scale(1.06);
+    opacity: 0.7;
+  }
+}
+@keyframes fit-out {
+  40% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes fill-in {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+  to {
+    clip-path: circle(72% at 50% 50%);
+  }
+}
+@keyframes pulse {
+  50% {
+    opacity: 0.6;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dip {
+  50% {
+    opacity: 0.55;
+  }
+}
+@keyframes glow {
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ---- Reduced motion: movement becomes fades ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pin,
+  .hand i {
+    transition: none;
+  }
+  .piece.up .pin {
+    transform: none;
+  }
+  .pin.land,
+  .pin.hop {
+    animation: none;
+  }
+  .pin.wiggle {
+    animation: dip var(--wiggle) ease;
+  }
+  .mark.dot {
+    animation-name: fade-in;
+    animation-timing-function: ease;
+  }
+  .mark .art {
+    animation-name: glow;
+  }
+  .mark.fill {
+    animation-name: fade-in;
+  }
+}
