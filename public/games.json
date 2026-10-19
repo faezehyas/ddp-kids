@@ -1,0 +1,8 @@
+[
+  {
+    "slug": "chess",
+    "label": "Chess",
+    "art": "<g class=\"clay\"><rect x=\"12\" y=\"15\" width=\"16\" height=\"17\" rx=\"2.5\"/><path d=\"M10 8.5a1.5 1.5 0 0 1 1.5-1.5h3a1 1 0 0 1 1 1v2h2.5v-2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2h2.5v-2a1 1 0 0 1 1-1h3a1.5 1.5 0 0 1 1.5 1.5v6.5a1.5 1.5 0 0 1-1.5 1.5h-17a1.5 1.5 0 0 1-1.5-1.5z\"/></g><rect class=\"clay-dark\" x=\"8\" y=\"31\" width=\"24\" height=\"6\" rx=\"3\"/>",
+    "path": "/chess/"
+  }
+]

@@ -2,7 +2,7 @@
 // Playwright.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assertNoSideScroll, assertNoWords, openPage, skipWithoutPlaywright } from "./helpers.js";
+import { assertBigTargets, assertNoSideScroll, assertNoWords, openPage, skipWithoutPlaywright } from "./helpers.js";
 
 const skip = skipWithoutPlaywright();
 
@@ -19,4 +19,11 @@ test("assertNoSideScroll fails on a page wider than the screen", { skip }, async
   // Through the CSSOM: the CSP refuses style attributes.
   await page.evaluate(() => Object.assign(document.body.appendChild(document.createElement("div")).style, { width: "500px", height: "10px" }));
   await assert.rejects(assertNoSideScroll(page), /sideways/);
+});
+
+test("assertBigTargets fails on a button under 64 px", { skip }, async (t) => {
+  const page = await openPage(t, "/", "phone");
+  await assertBigTargets(page);
+  await page.evaluate(() => Object.assign(document.body.appendChild(document.createElement("button")).style, { width: "40px", height: "40px" }));
+  await assert.rejects(assertBigTargets(page), /40x40/);
 });
