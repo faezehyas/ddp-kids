@@ -86,13 +86,14 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
   }
 
   // Moves a piece to a square from wherever it shows now (mid-drag or
-  // mid-move), and resolves when it's there. how: "slide", or "hop" to jump
-  // over the pieces in between. With reduced motion it fades out and in.
+  // mid-move), and resolves when it's there. how: "slide", "hop" to jump
+  // over the pieces in between, or "walk", slower and softer. With reduced
+  // motion it fades out and in.
   async function move(id, square, how = "slide") {
     const p = get(id);
     const from = p.el.getBoundingClientRect();
     p.square = { ...square };
-    p.el.classList.remove("moving");
+    p.el.classList.remove("moving", "walk");
     p.el.style.transition = "none";
     p.el.style.translate = "";
     p.el.style.transform = "";
@@ -123,10 +124,11 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
     void p.el.offsetWidth;
     p.el.style.transition = "";
     p.el.classList.add("moving");
+    p.el.classList.toggle("walk", how === "walk");
     p.el.style.transform = "";
     if (how === "hop") replay(p.pin, "hop");
-    await sleep(token("move"));
-    if (same(p.square, square)) p.el.classList.remove("moving");
+    await sleep(token(how === "walk" ? "walk" : "move"));
+    if (same(p.square, square)) p.el.classList.remove("moving", "walk");
   }
 
   // Shows a piece away from its square by x, y px, as a finger drags it;

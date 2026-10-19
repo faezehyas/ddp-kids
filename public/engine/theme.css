@@ -31,6 +31,7 @@
 
   /* Sizes. Board sizes are fractions of the board's width. */
   --target: 64px;
+  --margin: 12px;
   --font: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --board-r: 18px;
   --board-pad: 0.026;
@@ -53,6 +54,8 @@
   --land: 340ms;
   --wiggle: 400ms;
   --hop: 420ms;
+  --walk: 700ms;
+  --walk-wait: 900ms;
   --dot-step: 60ms;
   --dot-pop: 380ms;
   --fit: 700ms;
@@ -203,6 +206,10 @@ body {
 .piece.moving {
   z-index: 6;
   transition: transform var(--move) var(--ease-move), opacity var(--fade) ease;
+}
+.piece.walk {
+  transition-duration: var(--walk), var(--fade);
+  transition-timing-function: ease-in-out, ease;
 }
 .piece.up {
   z-index: 7;

@@ -97,6 +97,28 @@ export async function openPage(t, pathname, device = "tablet-landscape") {
   return page;
 }
 
+// One finger on the touch screen, through the DevTools protocol (Playwright's
+// touchscreen only taps).
+export async function finger(page) {
+  const cdp = await page.context().newCDPSession(page);
+  let at = null;
+  const send = (type, points) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: points });
+  return {
+    async down({ x, y }) {
+      at = { x, y };
+      await send("touchStart", [at]);
+    },
+    async move({ x, y }, steps = 8) {
+      const from = at;
+      for (let i = 1; i <= steps; i++) {
+        at = { x: from.x + ((x - from.x) * i) / steps, y: from.y + ((y - from.y) * i) / steps };
+        await send("touchMove", [at]);
+      }
+    },
+    up: () => send("touchEnd", []),
+  };
+}
+
 // Fails on visible text outside [data-parent]: text nodes, and text that CSS
 // adds with ::before or ::after.
 export async function assertNoWords(page) {
