@@ -1,0 +1,150 @@
+/* The home shelf: a bookcase with one plank, and a lidded box for each game.
+   Phone portrait first: one box fills most of the width; it shrinks to fit a
+   short screen. Every size is a fraction of a box's width, --bw. */
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+#clay .clay-light {
+  stop-color: var(--clay-light);
+}
+#clay .clay {
+  stop-color: var(--clay);
+}
+
+.shelf {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding-bottom: calc(var(--target) / 2);
+}
+.case {
+  --bw: min(78vw, 5 * var(--target), (100dvh - 2 * var(--target)) / 1.3);
+  --frame: calc(var(--bw) * 0.035);
+  --plank: calc(var(--bw) * 0.05);
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: var(--frame);
+  width: min(100vw - var(--target) / 2, var(--bw) * 1.6);
+  padding: calc(var(--bw) * 0.14) var(--frame) var(--plank);
+  border: var(--frame) solid var(--sand-deep);
+  border-bottom: 0;
+  border-radius: var(--board-r) var(--board-r) var(--frame) var(--frame);
+  background: var(--sand);
+  box-shadow:
+    inset 0 var(--frame) calc(var(--frame) * 2) calc(var(--frame) * -1) var(--tray-shade),
+    0 calc(var(--frame) / 2) 0 var(--line),
+    0 calc(var(--frame) * 2) calc(var(--frame) * 4) calc(var(--frame) * -1) var(--tray-shade);
+}
+/* The plank the boxes stand on, out to the frame's edges. */
+.case::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--frame) * -1);
+  right: calc(var(--frame) * -1);
+  bottom: 0;
+  height: var(--plank);
+  border-radius: 0 0 var(--frame) var(--frame);
+  background: var(--sand-deep);
+}
+
+.box {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: var(--bw);
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--board-r);
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.box:focus-visible {
+  outline: var(--ring) solid var(--clay-dark);
+  outline-offset: var(--ring);
+}
+.box > span {
+  position: absolute;
+  inset: 0;
+}
+.box svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.box .inside {
+  fill: var(--line);
+}
+.box .front,
+.box .lid-edge {
+  fill: var(--sand-dark);
+}
+.box .crease {
+  fill: var(--tray-shade);
+}
+.box .front-edge {
+  fill: var(--sand-deep);
+}
+.box .lid {
+  fill: var(--tray);
+}
+.box .lid-top {
+  fill: var(--sand);
+}
+.box .label {
+  fill: var(--paper);
+}
+.box .clay {
+  fill: url(#clay);
+}
+.box .clay-dark {
+  fill: var(--clay-dark);
+}
+
+/* The soft shadow under the box. */
+.box > .box-floor {
+  inset: auto 6% -3%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--tray-shade), transparent);
+  transition: transform var(--fade) ease, opacity var(--fade) ease;
+}
+.box-base,
+.box-lid {
+  transition: transform var(--fade) ease;
+}
+.box.down .box-base,
+.box.down .box-lid {
+  transform: translateY(2.5%);
+}
+.box.down .box-floor {
+  transform: scale(0.92, 0.8);
+  opacity: 0.8;
+}
+.box-lid {
+  transform-origin: 8% 80%;
+}
+.box.open .box-lid {
+  transform: translate(-3%, -16%) rotate(-8deg);
+  transition: transform var(--move) var(--ease-move);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box.down .box-base,
+  .box.down .box-lid,
+  .box.down .box-floor {
+    transform: none;
+  }
+  .box.open .box-lid {
+    transform: none;
+    opacity: 0;
+    transition: opacity var(--fade) ease;
+  }
+}

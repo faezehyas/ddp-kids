@@ -50,7 +50,7 @@ test("home page and static files", async (t) => {
   assert.equal(home.headers.get("content-type"), "text/html; charset=utf-8");
   assert.equal(home.headers.get("cache-control"), "no-cache");
   assert.match(await home.text(), /<title>ddp-kids<\/title>/);
-  const css = await fetch(`${srv.base}/style.css`);
+  const css = await fetch(`${srv.base}/home.css`);
   assert.equal(css.headers.get("content-type"), "text/css; charset=utf-8");
   assert.match(css.headers.get("cache-control"), /max-age=\d+/);
 });

@@ -50,10 +50,14 @@ An outline for now; the first game fills in the details.
    sound goes into `SOUNDS` in `engine/sound.js`, where its test keeps it
    under the loudness limit.
 6. **Browser test:** `test/browser/<game>.test.js` opens the game with
-   `openPage()` on all three devices and calls `assertNoWords()` and
-   `assertNoSideScroll()`.
+   `openPage()` on all three devices and calls `assertNoWords()`,
+   `assertNoSideScroll()` and `assertBigTargets()`.
 7. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
    4-year-old would: tap fast, tap wrong squares, drag off the board, and
    leave it alone for a while.
-8. **Docs:** move the game in [GAMES.md](GAMES.md) and open the PR with the
+8. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
+   `art` (the lid's picture as SVG markup in a 40x40 view box, using the
+   classes `clay` and `clay-dark`) and `path` (`/<game>/`). The home shelf
+   shows a box for it.
+9. **Docs:** move the game in [GAMES.md](GAMES.md) and open the PR with the
    template's checklist.
