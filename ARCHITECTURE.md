@@ -10,7 +10,7 @@ There are no accounts, analytics, cookies or third-party requests.
 ```text
 server/          the static file server
 public/
-  index.html     the home page (a placeholder for now)
+  index.html     the home shelf (home.css, home.js), one box per game in games.json
   engine/        shared by every game: theme, sound, board, input, ghost hand, prefs, parent area
   <game>/        one folder per game: chess/ for now
 test/            server tests; test/browser/ for Playwright
@@ -24,6 +24,12 @@ test/            server tests; test/browser/ for Playwright
   logs nothing about visitors.
 - **Engine** (`public/engine/`): behaviour every game shares; see
   [Engine](#engine).
+- **Home** (`public/index.html`, `home.css`, `home.js`): a bookcase with one
+  lidded box per game in `public/games.json`. Each entry is `slug`, `label`
+  (the box's `aria-label`), `art` (SVG markup for the lid, in a 40x40 view
+  box, coloured by the classes `clay` and `clay-dark`) and `path`. Tapping a
+  box, or Enter or Space on it, lifts the lid with the `land` tok and opens
+  `path` once the lid is up; the game picks up where the child left off.
 - **Game** (`public/<game>/`): rules in a pure `rules.js` (unit-tested,
   throws `RuleError` on bad input), stages as data in `lessons.js`, art in
   `pieces.js`.
@@ -110,8 +116,8 @@ automatic guards for free.
 | No visible words outside the parent area (`[data-parent]`); screen-reader text goes in `aria-label` | `assertNoWords(page)` |
 | Same origin only | The CSP; `openPage()` fails the test on any request to another origin, and blocks it |
 | No errors | `openPage()` fails the test on any console error or page error, which includes CSP violations and missing files |
-| No sideways scroll | `assertNoSideScroll(page)` |
-| Big targets: every tappable thing is at least 64 px (board squares on phones are smaller; dragging works there too) | `test/browser/playground.test.js` measures the home button |
+| No sideways scroll | `assertNoSideScroll(page)`, which also reads the body's width, since `theme.css` hides its overflow |
+| Big targets: every tappable thing is at least 64 px (board squares on phones excepted; dragging works there too) | `assertBigTargets(page)` |
 | Nothing flashes more than 3 times a second; `prefers-reduced-motion` turns motion into fades | The engine's motion is in `theme.css`; `test/browser/engine.test.js` checks the hand turns into a slow pulse; `test/browser/playground.test.js` checks fast wrong taps wiggle at most 3 times a second |
 | Quiet sound: every sound goes through `engine/sound.js` and stays under its loudness limit | `public/engine/sound.test.js` measures every sound against `LIMIT` |
 | No dead ends: every screen has a way home; a wrong tap wiggles, it never blocks | `test/browser/playground.test.js`: the home button, wrong taps and drops, fast taps, and the pawn's walk back |

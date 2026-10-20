@@ -71,13 +71,17 @@ Chess (`public/chess/`) is the example for every step.
    `engine/sound.js`, where its test keeps it under the loudness limit.
 8. **Browser test:** `test/browser/<game>.test.js` (chess:
    `playground.test.js`) opens the page with `openPage()` on all three
-   devices and calls `assertNoWords()` and `assertNoSideScroll()`; it
-   checks the home button, taps, drags (`finger()` in `helpers.js`), wrong
-   squares, fast taps and the hand, and compares what the page shows with
-   `rules.js`, which it imports.
+   devices and calls `assertNoWords()`, `assertNoSideScroll()` and
+   `assertBigTargets()`; it checks the home button, taps, drags (`finger()`
+   in `helpers.js`), wrong squares, fast taps and the hand, and compares
+   what the page shows with `rules.js`, which it imports.
 9. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
    4-year-old would: tap fast, tap wrong squares, drag off the board, and
    leave it alone for a while. Check 360 px wide and phone landscape too.
-10. **Docs:** describe the game in [ARCHITECTURE.md](ARCHITECTURE.md), move
+10. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
+    `art` (the lid's picture as SVG markup in a 40x40 view box, using the
+    classes `clay` and `clay-dark`) and `path` (`/<game>/`). The home shelf
+    shows a box for it.
+11. **Docs:** describe the game in [ARCHITECTURE.md](ARCHITECTURE.md), move
     it in [GAMES.md](GAMES.md) and open the PR with the template's
     checklist.

@@ -11,7 +11,7 @@ import path from "node:path";
 import { LESSONS } from "../../public/chess/lessons.js";
 import { NAMES } from "../../public/chess/pieces.js";
 import { key, moves } from "../../public/chess/rules.js";
-import { ARTIFACTS, DEVICES, assertNoSideScroll, assertNoWords, finger, openPage, skipWithoutPlaywright } from "./helpers.js";
+import { ARTIFACTS, DEVICES, assertBigTargets, assertNoSideScroll, assertNoWords, finger, openPage, skipWithoutPlaywright } from "./helpers.js";
 
 const skip = skipWithoutPlaywright();
 const ROOK = LESSONS[0].start;
@@ -80,9 +80,9 @@ for (const device of Object.keys(DEVICES)) {
     const { width, height } = DEVICES[device];
     await assertNoWords(page);
     await assertNoSideScroll(page);
+    await assertBigTargets(page);
     const home = await page.locator(".home").evaluate((a) => ({ href: a.getAttribute("href"), ...a.getBoundingClientRect().toJSON() }));
     assert.equal(home.href, "/");
-    assert.ok(home.width >= 64 && home.height >= 64, `the home button is ${home.width} x ${home.height} px`);
     const b = await page.locator(".board").evaluate((el) => el.getBoundingClientRect().toJSON());
     assert.ok(b.left >= 0 && b.right <= width && b.bottom <= height && (b.top >= home.bottom || b.left >= home.right), `the board is on the screen, clear of the home button: ${JSON.stringify(b)}`);
 

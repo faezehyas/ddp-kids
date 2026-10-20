@@ -146,7 +146,23 @@ export async function assertNoWords(page) {
 }
 
 // clientWidth, not innerWidth: a mobile browser zooms out to fit a wide page.
+// The body's scrollWidth too: theme.css hides its overflow, which would cut a
+// wide page off instead.
 export async function assertNoSideScroll(page) {
-  const { scroll, width } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, width: document.documentElement.clientWidth }));
+  const { scroll, width } = await page.evaluate(() => ({ scroll: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth), width: document.documentElement.clientWidth }));
   assert.ok(scroll <= width, `the page scrolls sideways: ${scroll} px wide in a ${width} px window`);
+}
+
+// Fails on anything tappable smaller than --target (64 px) either way.
+export async function assertBigTargets(page) {
+  const small = await page.evaluate(() => {
+    const target = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--target"));
+    const tappable = 'a[href], button, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])';
+    return [...document.querySelectorAll(tappable)]
+      .filter((el) => el.checkVisibility())
+      .map((el) => ({ el, r: el.getBoundingClientRect() }))
+      .filter(({ r }) => r.width < target || r.height < target)
+      .map(({ el, r }) => `${el.outerHTML.slice(0, 60)} is ${Math.round(r.width)}x${Math.round(r.height)}`);
+  });
+  assert.deepEqual(small, [], "tappable things under 64 px");
 }
