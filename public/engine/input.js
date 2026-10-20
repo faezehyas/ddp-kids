@@ -4,7 +4,8 @@
 //   { type: "drop", id, from, to }   a piece was dragged and let go over `to`
 //                                    (null when off the board)
 // For a drop, onInput returns true when the move is allowed, and the game
-// moves the piece there with board.move(); otherwise it snaps back.
+// moves the piece there with board.move(); otherwise it snaps back to its
+// square (where the board has it now, which a game may have changed mid-drag).
 // The keyboard: the arrow keys move a focus ring, and Enter or Space picks up
 // the piece under it (a tap) and puts it down on another square (a drop).
 // Escape puts it back.
@@ -51,7 +52,7 @@ export function listen(board, onInput) {
     // Where the middle of the piece is, not the finger.
     const r = el.querySelector(`.piece[data-id="${CSS.escape(id)}"]`).getBoundingClientRect();
     const to = cancelled ? null : board.squareAt(r.left + r.width / 2, r.top + r.height / 2);
-    if (cancelled || onInput({ type: "drop", id, from: { ...square }, to }) !== true) board.move(id, square);
+    if (cancelled || onInput({ type: "drop", id, from: { ...square }, to }) !== true) board.move(id, board.where(id));
   }
   el.addEventListener("pointerup", (e) => end(e, false));
   el.addEventListener("pointercancel", (e) => end(e, true));

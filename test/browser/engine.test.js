@@ -9,7 +9,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
-import { ARTIFACTS, DEVICES, assertNoSideScroll, assertNoWords, openPage, skipWithoutPlaywright } from "./helpers.js";
+import { ARTIFACTS, DEVICES, assertNoSideScroll, assertNoWords, finger, openPage, skipWithoutPlaywright } from "./helpers.js";
 
 const skip = skipWithoutPlaywright();
 const START = { c: 3, r: 4 };
@@ -38,28 +38,6 @@ async function offSquare(page) {
     const s = board.rect(board.where("a"));
     return Math.hypot(p.left + p.width / 2 - (s.left + s.width / 2), p.top + p.height / 2 - (s.top + s.height / 2));
   });
-}
-
-// One finger on the touch screen, through the DevTools protocol (Playwright's
-// touchscreen only taps).
-async function finger(page) {
-  const cdp = await page.context().newCDPSession(page);
-  let at = null;
-  const send = (type, points) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: points });
-  return {
-    async down({ x, y }) {
-      at = { x, y };
-      await send("touchStart", [at]);
-    },
-    async move({ x, y }, steps = 8) {
-      const from = at;
-      for (let i = 1; i <= steps; i++) {
-        at = { x: from.x + ((x - from.x) * i) / steps, y: from.y + ((y - from.y) * i) / steps };
-        await send("touchMove", [at]);
-      }
-    },
-    up: () => send("touchEnd", []),
-  };
 }
 
 for (const device of Object.keys(DEVICES)) {

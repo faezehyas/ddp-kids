@@ -1,0 +1,68 @@
+/* The chess playground. Phone portrait first: the home button in the top
+   left corner and the board below it, as big as fits; in landscape the board
+   sits between two margins as wide as the button. */
+.stage {
+  position: fixed;
+  inset: 0;
+  padding: calc(var(--target) + 2 * var(--margin)) var(--margin) var(--margin);
+}
+@media (orientation: landscape) {
+  .stage {
+    padding: var(--margin) calc(var(--target) + 2 * var(--margin));
+  }
+}
+
+/* The only control: a small house that goes home. */
+.home {
+  position: fixed;
+  top: max(var(--margin), env(safe-area-inset-top));
+  left: max(var(--margin), env(safe-area-inset-left));
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--target);
+  height: var(--target);
+  border-radius: 50%;
+  color: var(--line);
+}
+.home svg {
+  width: 53%;
+  height: 53%;
+}
+.home:focus-visible {
+  outline: var(--ring) solid var(--clay-dark);
+}
+
+/* The pieces' colours (pieces.js). */
+.defs {
+  position: absolute;
+}
+.clay-light {
+  stop-color: var(--clay-light);
+}
+.clay {
+  stop-color: var(--clay);
+}
+.ink-light {
+  stop-color: var(--ink-light);
+}
+.ink {
+  stop-color: var(--ink);
+}
+.you .base {
+  fill: var(--clay-dark);
+}
+.ink .base {
+  fill: var(--ink);
+}
+.slit {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.you .slit {
+  stroke: var(--clay-dark);
+}
+.ink .slit {
+  stroke: var(--ink-light);
+}

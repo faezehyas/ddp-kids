@@ -31,33 +31,57 @@ Screenshots go to `test-artifacts/`, which git ignores.
 
 ## Recipe: add a game
 
-An outline for now; the first game fills in the details.
+Chess (`public/chess/`) is the example for every step.
 
 1. **Folder:** `public/<game>/` with `index.html`, `style.css`, `rules.js`,
-   `lessons.js`, `pieces.js` and the page's script.
+   `lessons.js`, `pieces.js` and the page's script (chess:
+   `playground.js`). The server serves it at `/<game>/`.
 2. **Rules:** pure functions in `rules.js`, unit-tested in `rules.test.js`
-   next to it; bad input throws `RuleError`.
-3. **Stages:** data in `lessons.js`, read by the game's page.
-4. **Page:** `index.html` links `/engine/theme.css` before its own
-   `style.css` and loads its script with `<script type="module">`. The
-   script builds the screen from the [engine](ARCHITECTURE.md#engine):
-   `createBoard()` in a box the page sizes (phone portrait first),
-   `listen()` for taps, drags and keys, and `createHand()` to show a move.
-   Colours, sizes and timings come only from the tokens in `theme.css`.
-5. **Art and sound:** each piece is SVG markup in `pieces.js`, which the
-   board also draws as the piece's shadow. Sounds are the engine's: `play()`
-   from `engine/sound.js` with `land`, `fit`, `arrive` or `nope`. A new
-   sound goes into `SOUNDS` in `engine/sound.js`, where its test keeps it
-   under the loudness limit.
-6. **Browser test:** `test/browser/<game>.test.js` opens the game with
-   `openPage()` on all three devices and calls `assertNoWords()`,
-   `assertNoSideScroll()` and `assertBigTargets()`.
-7. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
+   next to it; bad input throws `RuleError`. No DOM, randomness, clock or
+   storage. Chess: `moves(position, id)` lists the squares a piece can go
+   to, and the page draws its dots from them.
+3. **Stages:** data in `lessons.js`, read by the page. Chess: `LESSONS`,
+   the pieces in order with their start squares; `?piece=B` opens one.
+4. **Art:** each piece is SVG markup in `pieces.js` with
+   `aria-hidden="true"`, drawn with classes so `style.css` gives the
+   colours from the tokens (the CSP refuses `style` attributes). Gradients
+   and filters go once per page (chess: `DEFS`). The board draws the same
+   markup as the piece's dashed shadow. Give each piece a name for screen
+   readers (chess: `NAMES`).
+5. **Page:** `index.html` links `/engine/theme.css` before its own
+   `style.css` and loads its script with `<script type="module">`. Its only
+   fixed control is the home button: an `<a href="/">` with a small house
+   and `aria-label="Home"`, `--target` (64 px) square in the top left
+   corner. `style.css` sizes a `<main>` box for the board, phone portrait
+   first (below the home button) and beside it in landscape, with
+   `--margin` around it. Colours, sizes and timings come only from the
+   tokens in `theme.css`; a new one goes there.
+6. **Script:** builds the screen from the [engine](ARCHITECTURE.md#engine),
+   with no board, input or hand code of its own:
+   - `createBoard()` in the page's box, `place()` the piece with its name,
+     and `dots()` from the rules.
+   - `listen()`: a legal tap or drop calls `move()`, then `land()` and
+     `play("land")`, and returns `true` for a drop; anything else calls
+     `wiggle()` and `play("nope")`, one wiggle at a time. Ignore input
+     while a piece moves, and never leave the child stuck (chess: the pawn
+     walks back from the far row).
+   - `createHand().show()` once when the page opens, to show a move.
+7. **Sound:** only the engine's: `play()` from `engine/sound.js` with
+   `land`, `fit`, `arrive` or `nope`. A new sound goes into `SOUNDS` in
+   `engine/sound.js`, where its test keeps it under the loudness limit.
+8. **Browser test:** `test/browser/<game>.test.js` (chess:
+   `playground.test.js`) opens the page with `openPage()` on all three
+   devices and calls `assertNoWords()`, `assertNoSideScroll()` and
+   `assertBigTargets()`; it checks the home button, taps, drags (`finger()`
+   in `helpers.js`), wrong squares, fast taps and the hand, and compares
+   what the page shows with `rules.js`, which it imports.
+9. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
    4-year-old would: tap fast, tap wrong squares, drag off the board, and
-   leave it alone for a while.
-8. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
-   `art` (the lid's picture as SVG markup in a 40x40 view box, using the
-   classes `clay` and `clay-dark`) and `path` (`/<game>/`). The home shelf
-   shows a box for it.
-9. **Docs:** move the game in [GAMES.md](GAMES.md) and open the PR with the
-   template's checklist.
+   leave it alone for a while. Check 360 px wide and phone landscape too.
+10. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
+    `art` (the lid's picture as SVG markup in a 40x40 view box, using the
+    classes `clay` and `clay-dark`) and `path` (`/<game>/`). The home shelf
+    shows a box for it.
+11. **Docs:** describe the game in [ARCHITECTURE.md](ARCHITECTURE.md), move
+    it in [GAMES.md](GAMES.md) and open the PR with the template's
+    checklist.
