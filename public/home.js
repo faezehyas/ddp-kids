@@ -2,6 +2,7 @@
 // Enter or Space on it) lifts its lid with a wooden tok, then opens the game,
 // which picks up where the child left off.
 import { reducedMotion, token } from "./engine/board.js";
+import { addParentCorner } from "./engine/parent.js";
 import { play } from "./engine/sound.js";
 
 const svg = (inner, box = "0 0 200 200") => `<svg viewBox="${box}" aria-hidden="true" focusable="false">${inner}</svg>`;
@@ -42,6 +43,7 @@ function shelve(game) {
   return box;
 }
 
+addParentCorner();
 const games = await (await fetch("/games.json")).json();
 document.querySelector(".case").append(...games.map(shelve));
 

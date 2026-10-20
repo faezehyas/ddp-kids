@@ -49,13 +49,14 @@ Chess (`public/chess/`) is the example for every step.
    markup as the piece's dashed shadow. Give each piece a name for screen
    readers (chess: `NAMES`).
 5. **Page:** `index.html` links `/engine/theme.css` before its own
-   `style.css` and loads its script with `<script type="module">`. Its only
-   fixed control is the home button: an `<a href="/">` with a small house
+   `style.css` and loads its script with `<script type="module">`. Its
+   fixed controls are the home button, an `<a href="/">` with a small house
    and `aria-label="Home"`, `--target` (64 px) square in the top left
-   corner. `style.css` sizes a `<main>` box for the board, phone portrait
-   first (below the home button) and beside it in landscape, with
-   `--margin` around it. Colours, sizes and timings come only from the
-   tokens in `theme.css`; a new one goes there.
+   corner, and the parent corner in the top right (step 6). `style.css`
+   sizes a `<main>` box for the board, phone portrait first (below the two
+   buttons) and beside them in landscape, with `--margin` around it.
+   Colours, sizes and timings come only from the tokens in `theme.css`; a
+   new one goes there.
 6. **Script:** builds the screen from the [engine](ARCHITECTURE.md#engine),
    with no board, input or hand code of its own:
    - `createBoard()` in the page's box, `place()` the piece with its name,
@@ -66,6 +67,9 @@ Chess (`public/chess/`) is the example for every step.
      while a piece moves, and never leave the child stuck (chess: the pawn
      walks back from the far row).
    - `createHand().show()` once when the page opens, to show a move.
+   - `addParentCorner()` from `engine/parent.js` once, for the parent area.
+     Keep progress in `DEFAULTS` in `engine/prefs.js`, so its reset clears
+     it, and read it when the page loads.
 7. **Sound:** only the engine's: `play()` from `engine/sound.js` with
    `land`, `fit`, `arrive` or `nope`. A new sound goes into `SOUNDS` in
    `engine/sound.js`, where its test keeps it under the loudness limit.

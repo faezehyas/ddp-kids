@@ -8,6 +8,7 @@
 import { createBoard, sleep, token } from "/engine/board.js";
 import { createHand } from "/engine/hand.js";
 import { listen } from "/engine/input.js";
+import { addParentCorner } from "/engine/parent.js";
 import { play } from "/engine/sound.js";
 import { LESSONS } from "./lessons.js";
 import { DEFS, NAMES, art } from "./pieces.js";
@@ -19,6 +20,7 @@ const { type, start } = LESSONS.find((l) => l.type === wanted) ?? LESSONS[0];
 const ART = art(type);
 
 document.body.insertAdjacentHTML("afterbegin", DEFS);
+addParentCorner();
 const board = createBoard(document.getElementById("stage"), { label: "Chess board" });
 const hand = createHand(board);
 // Where the hand left the piece's shadow, until the child moves.

@@ -4,9 +4,11 @@
 // doesn't parse, or one from another version, reads as the defaults, and so
 // does any setting of the wrong type. No DOM; runs in node too, where
 // `storage` stands in for localStorage.
-const KEY = "ddp-kids";
+export const KEY = "ddp-kids";
 export const VERSION = 1;
 export const DEFAULTS = Object.freeze({ sound: true });
+// The settings a reset keeps; everything else in DEFAULTS is progress.
+export const SETTINGS = Object.freeze(["sound"]);
 
 function clean(saved) {
   const prefs = {};
@@ -29,4 +31,11 @@ export function setPrefs(patch, storage) {
     (storage ?? globalThis.localStorage).setItem(KEY, JSON.stringify({ version: VERSION, ...prefs }));
   } catch {}
   return prefs;
+}
+
+// Puts all progress back to the defaults, keeps the settings, and returns
+// them all.
+export function resetProgress(storage) {
+  const prefs = getPrefs(storage);
+  return setPrefs({ ...DEFAULTS, ...Object.fromEntries(SETTINGS.map((name) => [name, prefs[name]])) }, storage);
 }
