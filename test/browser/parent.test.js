@@ -145,7 +145,7 @@ test("sound off silences every sound", { skip }, async (t) => {
 
 test("reset clears progress after a second tap, and closing starts the page again", { skip }, async (t) => {
   const page = await open(t);
-  const before = JSON.stringify({ version: VERSION, sound: false, chess: { met: ["R", "B"] } });
+  const before = JSON.stringify({ version: VERSION, sound: false, progress: { chess: { met: ["R", "B"] } } });
   await page.evaluate((v) => localStorage.setItem("ddp-kids", v), before);
   await openPanel(page);
   assert.match(await page.locator(".parent-saved").textContent(), /"met"/);

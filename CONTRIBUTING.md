@@ -41,7 +41,10 @@ Chess (`public/chess/`) is the example for every step.
    storage. Chess: `moves(position, id)` lists the squares a piece can go
    to, and the page draws its dots from them.
 3. **Stages:** data in `lessons.js`, read by the page. Chess: `LESSONS`,
-   the pieces in order with their start squares; `?piece=B` opens one.
+   the pieces in order with their start squares and steps (free moves,
+   shadows to fill, their distance per round); `?piece=B` opens one. A
+   game saves its progress with `setPrefs()` under `progress.<game>` and
+   checks what it reads back.
 4. **Art:** each piece is SVG markup in `pieces.js` with
    `aria-hidden="true"`, drawn with classes so `style.css` gives the
    colours from the tokens (the CSP refuses `style` attributes). Gradients
@@ -68,8 +71,8 @@ Chess (`public/chess/`) is the example for every step.
      walks back from the far row).
    - `createHand().show()` once when the page opens, to show a move.
    - `addParentCorner()` from `engine/parent.js` once, for the parent area.
-     Keep progress in `DEFAULTS` in `engine/prefs.js`, so its reset clears
-     it, and read it when the page loads.
+     Its reset puts `progress` back to `{}` and reloads the page, so read
+     the game's progress when the page loads.
 7. **Sound:** only the engine's: `play()` from `engine/sound.js` with
    `land`, `fit`, `arrive` or `nope`. A new sound goes into `SOUNDS` in
    `engine/sound.js`, where its test keeps it under the loudness limit.

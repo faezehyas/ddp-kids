@@ -43,8 +43,11 @@
   --dot-opacity: 0.85;
   --shadow-line: 1.9;
   --shadow-dash: 2.8 2.2;
+  --outline-line: 1.6;
+  --pip: 10px;
   --ring: 3px;
   --hand-opacity: 0.33;
+  --faint-opacity: 0.5;
   --drag-start: 6px;
   --panel-width: 440px;
 
@@ -70,6 +73,9 @@
   --hand-press: 350ms;
   --hand-rest: 450ms;
   --hand-fade: 400ms;
+  --idle: 8000ms;
+  --bob: 1200ms;
+  --next-wait: 1600ms;
   --hold: 3000ms;
   --nudge: 350ms;
 }
