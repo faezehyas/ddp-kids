@@ -4,13 +4,18 @@
 // doesn't parse, or one from another version, reads as the defaults, and so
 // does any setting of the wrong type. No DOM; runs in node too, where
 // `storage` stands in for localStorage.
+//   sound      true, or false for silence
+//   progress   each game's progress under its slug, as the game saves it;
+//              {} is a fresh start
 const KEY = "ddp-kids";
 export const VERSION = 1;
-export const DEFAULTS = Object.freeze({ sound: true });
+export const DEFAULTS = Object.freeze({ sound: true, progress: Object.freeze({}) });
+
+const kind = (value) => (Array.isArray(value) ? "array" : value === null ? "null" : typeof value);
 
 function clean(saved) {
   const prefs = {};
-  for (const [name, fallback] of Object.entries(DEFAULTS)) prefs[name] = typeof saved?.[name] === typeof fallback ? saved[name] : fallback;
+  for (const [name, fallback] of Object.entries(DEFAULTS)) prefs[name] = kind(saved?.[name]) === kind(fallback) ? saved[name] : fallback;
   return prefs;
 }
 

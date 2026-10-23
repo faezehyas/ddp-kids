@@ -41,7 +41,10 @@ Chess (`public/chess/`) is the example for every step.
    storage. Chess: `moves(position, id)` lists the squares a piece can go
    to, and the page draws its dots from them.
 3. **Stages:** data in `lessons.js`, read by the page. Chess: `LESSONS`,
-   the pieces in order with their start squares; `?piece=B` opens one.
+   the pieces in order with their start squares and steps (free moves,
+   shadows to fill, their distance per round); `?piece=B` opens one. A
+   game saves its progress with `setPrefs()` under `progress.<game>` and
+   checks what it reads back.
 4. **Art:** each piece is SVG markup in `pieces.js` with
    `aria-hidden="true"`, drawn with classes so `style.css` gives the
    colours from the tokens (the CSP refuses `style` attributes). Gradients
