@@ -7,9 +7,11 @@
 //   sound      true, or false for silence
 //   progress   each game's progress under its slug, as the game saves it;
 //              {} is a fresh start
-const KEY = "ddp-kids";
+export const KEY = "ddp-kids";
 export const VERSION = 1;
 export const DEFAULTS = Object.freeze({ sound: true, progress: Object.freeze({}) });
+// The settings a reset keeps; everything else in DEFAULTS is progress.
+export const SETTINGS = Object.freeze(["sound"]);
 
 const kind = (value) => (Array.isArray(value) ? "array" : value === null ? "null" : typeof value);
 
@@ -34,4 +36,11 @@ export function setPrefs(patch, storage) {
     (storage ?? globalThis.localStorage).setItem(KEY, JSON.stringify({ version: VERSION, ...prefs }));
   } catch {}
   return prefs;
+}
+
+// Puts all progress back to the defaults, keeps the settings, and returns
+// them all.
+export function resetProgress(storage) {
+  const prefs = getPrefs(storage);
+  return setPrefs({ ...DEFAULTS, ...Object.fromEntries(SETTINGS.map((name) => [name, prefs[name]])) }, storage);
 }

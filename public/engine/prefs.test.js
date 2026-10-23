@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { DEFAULTS, VERSION, getPrefs, setPrefs } from "./prefs.js";
+import { DEFAULTS, VERSION, getPrefs, resetProgress, setPrefs } from "./prefs.js";
 
 // localStorage's interface over a Map.
 function storage(entries = {}) {
@@ -81,4 +81,24 @@ test("a value from another version reads as the defaults", () => {
   for (const version of [undefined, 0, VERSION + 1, String(VERSION)]) {
     assert.deepEqual(getPrefs(storage({ "ddp-kids": JSON.stringify({ version, sound: false }) })), DEFAULTS, String(version));
   }
+});
+
+test("a reset keeps the settings and puts everything else back to the defaults", () => {
+  const s = storage({ "ddp-kids": JSON.stringify({ version: VERSION, sound: false, progress: { chess: { met: ["R", "B"] } } }) });
+  assert.deepEqual(resetProgress(s), { ...DEFAULTS, sound: false });
+  assert.deepEqual(saved(s), { version: VERSION, ...DEFAULTS, sound: false });
+});
+
+test("a reset with nothing saved, a corrupt value or blocked storage reads as the defaults", () => {
+  assert.deepEqual(resetProgress(storage()), DEFAULTS);
+  assert.deepEqual(resetProgress(storage({ "ddp-kids": "{not json" })), DEFAULTS);
+  const blocked = {
+    getItem() {
+      throw new DOMException("blocked", "SecurityError");
+    },
+    setItem() {
+      throw new DOMException("blocked", "SecurityError");
+    },
+  };
+  assert.deepEqual(resetProgress(blocked), DEFAULTS);
 });
