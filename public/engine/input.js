@@ -3,6 +3,8 @@
 //                                    it, or null
 //   { type: "drop", id, from, to }   a piece was dragged and let go over `to`
 //                                    (null when off the board)
+// A still piece (board.place()) can't be picked up or dragged; a tap on it
+// still reports its id.
 // For a drop, onInput returns true when the move is allowed, and the game
 // moves the piece there with board.move(); otherwise it snaps back to its
 // square (where the board has it now, which a game may have changed mid-drag).
@@ -22,10 +24,12 @@ export function listen(board, onInput) {
 
   el.addEventListener("pointerdown", (e) => {
     if (press || e.button !== 0) return;
-    const id = e.target.closest(".piece")?.dataset.id ?? null;
-    const square = id === null ? board.squareAt(e.clientX, e.clientY) : board.where(id);
+    const on = e.target.closest(".piece")?.dataset.id ?? null;
+    const square = on === null ? board.squareAt(e.clientX, e.clientY) : board.where(on);
     if (!square) return;
-    press = { pointer: e.pointerId, id, square, x: e.clientX, y: e.clientY, moved: false };
+    // A still piece stays put: pressing it is pressing its square.
+    const id = on !== null && !board.still(on) ? on : null;
+    press = { pointer: e.pointerId, id, on, square, x: e.clientX, y: e.clientY, moved: false };
     el.setPointerCapture(e.pointerId);
     if (id !== null) board.lift(id, true);
   });
@@ -41,11 +45,11 @@ export function listen(board, onInput) {
 
   function end(e, cancelled) {
     if (e.pointerId !== press?.pointer) return;
-    const { id, square, moved } = press;
+    const { id, on, square, moved } = press;
     press = null;
     if (id !== null) board.lift(id, false);
     if (!moved) {
-      if (!cancelled) onInput({ type: "tap", square: { ...square }, id });
+      if (!cancelled) onInput({ type: "tap", square: { ...square }, id: on });
       return;
     }
     if (id === null) return;
@@ -93,7 +97,7 @@ export function listen(board, onInput) {
       return;
     }
     const id = board.pieceAt(square);
-    if (id !== null) {
+    if (id !== null && !board.still(id)) {
       held = { id, from: square };
       board.lift(id, true);
     }

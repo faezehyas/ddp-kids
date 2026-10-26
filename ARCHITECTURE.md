@@ -46,9 +46,9 @@ and the row from the top, from 0.
 |---|---|
 | `theme.css` | The tokens (Paper and clay's colours, radii, the 64 px `--target`, motion durations and eases), the base page (paper, no scroll bounce, no selection or callouts outside `[data-parent]`), the board, marks, pieces and hand, the parent area, and reduced motion. Light only. Every colour, size and timing comes from its tokens; `token(name)` in `board.js` reads one from JavaScript |
 | `prefs.js` | `getPrefs()` and `setPrefs(patch)`: this device's settings and progress under one `localStorage` key, `KEY` (`ddp-kids`), with a version number: `sound`, and `progress`, each game's progress under its slug (`{}` starts every game afresh). Blocked storage, a corrupt value or another version reads as the defaults. `resetProgress()` keeps the settings in `SETTINGS` (`sound`) and puts everything else in `DEFAULTS` back, so a game's progress belongs in `progress` |
-| `sound.js` | `play(name)`: sounds made in code with WebAudio, started on the first touch or key, muted by `sound` in prefs. `land` (a wooden tok), `fit` (a soft chime as a piece fills its shadow), `arrive` (a new piece) and `nope` (a very soft tap for a wrong square). All stay under one loudness limit, `LIMIT` |
+| `sound.js` | `play(name)`: sounds made in code with WebAudio, started on the first touch or key, muted by `sound` in prefs. `land` (a wooden tok), `fit` (a soft chime as a piece fills its shadow), `arrive` (a new piece), `take` (a low wooden clonk as a taken piece rolls into a bowl) and `nope` (a very soft tap for a wrong square). All stay under one loudness limit, `LIMIT` |
 | `board.js` | `createBoard(host, { cols, rows, label })`: squares that fit `host` (a CSS grid with an aspect ratio), marks under the pieces, and the pieces. See below |
-| `input.js` | `listen(board, onInput)`: touch, mouse and keyboard as one callback. `{ type: "tap", square, id }` for a tapped square (`id` is the piece on it, or `null`); `{ type: "drop", id, from, to }` for a piece dragged and let go (`to` is `null` off the board). For a drop, `onInput` returns `true` and moves the piece, or the piece snaps back to where the board has it (a game may have moved it mid-drag). Arrow keys move a focus ring; Enter or Space picks up and puts down |
+| `input.js` | `listen(board, onInput)`: touch, mouse and keyboard as one callback. `{ type: "tap", square, id }` for a tapped square (`id` is the piece on it, or `null`); `{ type: "drop", id, from, to }` for a piece dragged and let go (`to` is `null` off the board). For a drop, `onInput` returns `true` and moves the piece, or the piece snaps back to where the board has it (a game may have moved it mid-drag). A still piece is never picked up or dragged; a tap on it still reports its `id`. Arrow keys move a focus ring; Enter or Space picks up and puts down |
 | `hand.js` | `createHand(board).show(steps)`: the ghost hand plays `press`, `drag`, `release` and `return` steps over the board, and resolves `true` when done or `false` when a touch or key cancelled it. With reduced motion, the target square pulses instead |
 | `parent.js` | `addParentCorner()`: the parent area, the only place with words. Every page calls it once. See below |
 
@@ -56,12 +56,14 @@ The board's methods:
 
 | Method | Does |
 |---|---|
-| `place(id, art, square, label)` | Puts the art (SVG markup) on a square as piece `id` |
+| `place(id, art, square, label, { still })` | Puts the art (SVG markup) on a square as piece `id`. A `still` piece can't be picked up and sits under the others |
+| `remove(id)` | Takes a piece off the board: it fades out |
+| `roll(id, box)` | A taken piece tips over and rolls into a box on the screen (client px, a bowl's), shrinking to fit, and leaves the board; resolves when it's there. Fades out with reduced motion |
 | `move(id, square, how)` | Slides (`how` is `"slide"`, the default), hops (`"hop"`) or walks (`"walk"`, slower and softer) the piece there from wherever it shows; resolves when it's there. Fades with reduced motion |
 | `land(id)`, `wiggle(id)` | A small squash as a piece lands; a wiggle for a wrong square |
-| `dots(squares, from)` | Dots on the squares, rippling out from `from` one ring at a time; they replace the dots before |
+| `dots(squares, from)` | Dots on the squares, rippling out from `from` one ring at a time; they replace the dots before. A dot on a piece sits on top of it: a piece to take |
 | `mark(kind, square, art)`, `clear(kind)` | Marks under the pieces: `fill` (a honey square), `outline`, `dot`, `shadow` (the art as a dashed honey outline) and `pulse`. Filling a square with a shadow on it fits the shadow. `clear()` with no kind clears them all |
-| `where(id)`, `pieceAt(square)`, `squareAt(x, y)`, `rect(square)` | Where a piece is, which piece is on a square, the square under a point on the screen, and a square's box on the screen |
+| `where(id)`, `pieceAt(square)`, `still(id)`, `squareAt(x, y)`, `rect(square)` | Where a piece is, which piece is on a square, whether a piece is still, the square under a point on the screen, and a square's box on the screen |
 | `lift(id, up)`, `drag(id, x, y)` | Used by `input.js` and `hand.js`: a piece lifts, and shows away from its square |
 
 The parent area: a faint button, `--target` square, fixed in the top right
@@ -75,7 +77,7 @@ the button. After a reset, closing it reloads the page, so a game only reads
 its progress on load. With reduced motion the ring fades in instead.
 
 The board makes no sounds: a game plays `land` when a piece lands, `fit`,
-`arrive` and `nope` itself. The ghost hand plays `land` when it lets go.
+`arrive`, `take` and `nope` itself. The ghost hand plays `land` when it lets go.
 
 ## Chess
 
@@ -85,7 +87,7 @@ teaches one piece at a time.
 | File | What it holds |
 |---|---|
 | `rules.js` | Where pieces can go: `moves()`, `play()`, `distance()` and `attacked()`. Pure, unit-tested in `rules.test.js` |
-| `lessons.js` | `LESSONS`: the pieces in the order a child meets them (rook, bishop, queen, king, knight, pawn), each with its start square and its steps: `free` moves before the first shadow, `shadows` to fill and the `distance` in moves a shadow needs in round 1 and round 2. `shadowSquares()` lists where the next shadow can go. Unit-tested in `lessons.test.js` |
+| `lessons.js` | `LESSONS`: the pieces in the order a child meets them (rook, bishop, queen, king, knight, pawn), each with its start square and its steps: `free` moves before the first shadow, `shadows` to fill and the `distance` in moves a shadow needs in round 1 and round 2; for round 2, the squares of the still ink pawns (`INK`) that stand in the way of the shadows (`blockers`) and the `captures`, three stages of 1, 2 and 3 to take from the start square. `shadowSquares()` lists where the next shadow can go, round the ink pawns. Unit-tested in `lessons.test.js`, which also checks every capture stage can be cleared |
 | `pieces.js` | `art(type, side)`: each piece as SVG markup in Paper and clay, for `"you"` (clay) and `"ink"`; `DEFS`, the gradients and wobble the art uses, once per page; `NAMES` for screen readers. `style.css` gives the colours |
 | `playground.js` | The page's script, built on the engine |
 | `index.html`, `style.css` | The page: the home button (a small house, 64 px, top left, back to `/`), the parent corner (top right), the board below them, or beside them in landscape, and the tray under the board, or beside it in landscape |
@@ -118,8 +120,20 @@ on the board as an empty well, the next as an outline and the rest faint.
 Tapping a piece met before brings it back; any other slot wiggles. Once all
 six are met, the next piece is the next in order again, and a piece that
 comes back then plays round 2. Progress is saved in prefs as
-`progress.chess`: `met`, `piece`, `round` (0 or 1) and `filled`, so `/chess/`
-opens where the child left it.
+`progress.chess`: `met`, `piece`, `round` (0 or 1), `filled` and `cleared`
+(capture stages cleared), so `/chess/` opens where the child left it.
+
+Round 2 teaches capturing with still ink pawns, which never move. The
+`blockers` stand in the way while the shadows wait: dots stop at them, and a
+dot sits on top of each one the piece can take (the knight's dots jump over
+them). After the shadows, each capture stage puts its pawns on the board and
+the piece walks back to its start; the hand shows the way to the nearest
+one, and again after `--idle`. Landing on an ink pawn tips it over and rolls
+it into the bowl under the tray with `take`. When the board is clear, `fit`
+plays, the bowl empties, and the next stage comes, or after the last, the
+next piece. A pawn that can no longer reach any ink pawn walks back to its
+start, and if it still can't, the stage starts again. A reload starts the
+stage on now afresh.
 
 ## Security headers
 
@@ -151,7 +165,7 @@ automatic guards for free.
 | Big targets: every tappable thing is at least 64 px (board squares on phones excepted; dragging works there too) | `assertBigTargets(page)` |
 | Nothing flashes more than 3 times a second; `prefers-reduced-motion` turns motion into fades | The engine's motion is in `theme.css`; `test/browser/engine.test.js` checks the hand turns into a slow pulse; `test/browser/playground.test.js` checks fast wrong taps wiggle at most 3 times a second |
 | Quiet sound: every sound goes through `engine/sound.js` and stays under its loudness limit | `public/engine/sound.test.js` measures every sound against `LIMIT` |
-| No dead ends: every screen has a way home; a wrong tap wiggles, it never blocks | `test/browser/playground.test.js`: the home button, wrong taps and drops, fast taps, and the pawn's walk back |
+| No dead ends: every screen has a way home; a wrong tap wiggles, it never blocks | `test/browser/playground.test.js`: the home button, wrong taps and drops, fast taps, and the pawn's walk back; `test/browser/capture.test.js`: a pawn that went past the ink pawns walks back |
 | No pressure: no voice, timers, scores, streaks or "you lose" | Review (the PR checklist) |
 
 ## Tests

@@ -30,6 +30,13 @@ export const SOUNDS = {
   ],
   // A new piece rolls in: four small taps, each a little lower.
   arrive: [0, 0.12, 0.22, 0.3].map((at, i) => ({ f: 320 - i * 30, f2: 220, type: "triangle", gain: 0.05, dur: 0.06, at })),
+  // A taken piece rolls into the bowl: a low wooden clonk, and a softer one
+  // as it settles.
+  take: [
+    { f: 220, f2: 110, type: "triangle", gain: 0.1, dur: 0.18 },
+    { noise: "lowpass", f: 450, gain: 0.04, dur: 0.07 },
+    { f: 180, f2: 100, type: "triangle", gain: 0.05, dur: 0.12, at: 0.14 },
+  ],
   // A wrong square: one very soft, low tap.
   nope: [{ f: 220, f2: 180, type: "triangle", gain: 0.04, dur: 0.08 }],
 };

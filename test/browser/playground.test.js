@@ -277,7 +277,7 @@ test("a pawn held while it walks back ends on its start", { skip }, async (t) =>
 const BISHOP = LESSONS[1].start;
 const position = (type, at) => ({ cols: 8, rows: 8, pieces: [{ id: "a", type, side: "you", at }] });
 const saved = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("ddp-kids"))?.progress.chess);
-const label = (page) => page.locator(".piece").getAttribute("aria-label");
+const label = (page) => page.locator('.piece[data-id="you"]').getAttribute("aria-label");
 const pipsOn = (page) => page.locator(".pips i.on").count();
 // Each slot on the tray as type:classes, e.g. "R:met" or "B:met+here".
 const trayState = (page) =>
@@ -294,7 +294,7 @@ async function openWith(t, chess, device = "phone") {
   const page = await open(t, "", device);
   await page.evaluate((chess) => localStorage.setItem("ddp-kids", JSON.stringify({ version: 1, sound: true, progress: { chess } })), chess);
   await page.reload();
-  await page.locator(".piece").waitFor();
+  await page.locator('.piece[data-id="you"]').waitFor();
   await quiet(page);
   return page;
 }
@@ -371,7 +371,7 @@ test("three filled shadows bring the bishop, and the rook on the tray brings the
   assert.deepEqual(await trayState(page), ["R:met", "B:met+here", "Q:next", "K:", "N:", "P:"]);
   assert.equal(await page.locator(".mark.fill").count(), 0, "a fresh board");
   assert.equal(await pipsOn(page), 0);
-  assert.deepEqual(await saved(page), { met: ["R", "B"], piece: "B", round: 0, filled: [] });
+  assert.deepEqual(await saved(page), { met: ["R", "B"], piece: "B", round: 0, filled: [], cleared: 0 });
 
   await tapSlot(page, "Q");
   assert.equal(await page.locator('.slot[data-type="Q"].wiggle').count(), 1, "a piece not met yet wiggles");
@@ -383,7 +383,7 @@ test("three filled shadows bring the bishop, and the rook on the tray brings the
   assert.equal(await label(page), "Rook");
   await assertRests(page, "R", ROOK);
   assert.deepEqual(await trayState(page), ["R:met+here", "B:met", "Q:next", "K:", "N:", "P:"]);
-  assert.deepEqual(await saved(page), { met: ["R", "B"], piece: "R", round: 0, filled: [] });
+  assert.deepEqual(await saved(page), { met: ["R", "B"], piece: "R", round: 0, filled: [], cleared: 0 });
 });
 
 test("a reload continues with the same piece and its filled squares", { skip }, async (t) => {

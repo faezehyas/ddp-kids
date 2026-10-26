@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { LESSONS, shadowSquares } from "./lessons.js";
-import { distance, key, moves } from "./rules.js";
+import { INK, LESSONS, shadowSquares } from "./lessons.js";
+import { distance, key, moves, play } from "./rules.js";
 
 const position = (type, at) => ({ cols: 8, rows: 8, pieces: [{ id: "a", type, side: "you", at }] });
 const far = (a, b) => Math.max(Math.abs(a.c - b.c), Math.abs(a.r - b.r));
@@ -64,4 +64,62 @@ test("a shadow skips filled squares while there are others", () => {
   assert.deepEqual(shadowSquares(pawn, pawn.start, 0, [two]), [{ c: pawn.start.c, r: pawn.start.r - 1 }]);
   // With every square filled, it still finds one.
   assert.deepEqual(shadowSquares(pawn, pawn.start, 0, [two, { c: pawn.start.c, r: pawn.start.r - 1 }]), [two]);
+});
+
+// ---- Round 2: ink pawns ----
+
+const withInk = (type, at, ink) => ({ cols: 8, rows: 8, pieces: [{ id: "a", type, side: "you", at }, ...ink.map((sq, i) => ({ id: `ink${i}`, type: INK, side: "ink", at: sq }))] });
+const orders = (list) => (list.length < 2 ? [list] : list.flatMap((x, i) => orders(list.filter((_, j) => j !== i)).map((rest) => [x, ...rest])));
+const onBoard = ({ c, r }) => c >= 0 && c < 8 && r >= 0 && r < 8;
+
+test("every piece has blockers and capture stages of 1, 2 and 3 ink pawns, on distinct free squares", () => {
+  for (const l of LESSONS) {
+    assert.deepEqual(l.captures.map((s) => s.length), [1, 2, 3], l.type);
+    for (const squares of [l.blockers, ...l.captures]) {
+      assert.ok(squares.length <= 3, `${l.type}: the bowl holds 3`);
+      assert.equal(new Set(squares.map(key)).size, squares.length, `${l.type}: ${squares.map(key)}`);
+      for (const sq of squares) assert.ok(onBoard(sq) && key(sq) !== key(l.start), `${l.type}: ${key(sq)}`);
+    }
+  }
+});
+
+test("every capture stage can be cleared from the start, in some order", () => {
+  for (const l of LESSONS) {
+    for (const stage of l.captures) {
+      const clears = orders(stage).some((order) => {
+        let at = l.start;
+        for (const [i, sq] of order.entries()) {
+          const p = withInk(l.type, at, order.slice(i));
+          if (distance(p, "a", sq) === Infinity) return false;
+          at = sq;
+        }
+        return true;
+      });
+      assert.ok(clears, `${l.type}: ${stage.map(key)}`);
+    }
+  }
+});
+
+test("dots stop at the ink pawns and sit on the ones to take; the knight jumps over", () => {
+  const rook = LESSONS[0];
+  const dots = moves(withInk("R", rook.start, rook.blockers), "a").map(key);
+  assert.ok(dots.includes("3,3") && dots.includes("3,2") && !dots.includes("3,1"), "up to the pawn on 3,2 and onto it");
+  assert.ok(dots.includes("5,4") && !dots.includes("6,4"), "up to the pawn on 5,4 and onto it");
+  const { captured } = play(withInk("R", rook.start, rook.blockers), "a", { c: 3, r: 2 });
+  assert.equal(captured, "ink0");
+
+  const knight = LESSONS.find((l) => l.type === "N");
+  const free = moves(withInk("N", knight.start, []), "a").map(key).sort();
+  assert.deepEqual(moves(withInk("N", knight.start, knight.blockers), "a").map(key).sort(), free, "the pawns next to it change nothing");
+});
+
+test("in round 2 the shadows go round the blockers, never on them", () => {
+  for (const l of LESSONS) {
+    const squares = shadowSquares(l, l.start, 1, [], l.blockers);
+    assert.ok(squares.length, l.type);
+    for (const sq of squares) {
+      assert.ok(!l.blockers.some((b) => key(b) === key(sq)), `${l.type}: ${key(sq)} is on a pawn`);
+      assert.equal(distance(withInk(l.type, l.start, l.blockers), "a", sq), 2, `${l.type}: ${key(sq)}`);
+    }
+  }
 });

@@ -67,11 +67,12 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
 
   // Puts art (SVG markup) on a square as piece `id`, replacing one with that
   // id. Ids come back from input.js as strings. label: what a screen reader
-  // calls the piece.
-  function place(id, art, square, label) {
+  // calls the piece. A still piece can't be picked up, and sits under the
+  // others.
+  function place(id, art, square, label, { still = false } = {}) {
     id = String(id);
     pieces.get(id)?.el.remove();
-    const p = div("piece");
+    const p = div(still ? "piece still" : "piece");
     const pin = div("pin");
     pin.innerHTML = art;
     p.append(pin);
@@ -82,7 +83,38 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
     }
     put(p, square);
     el.append(p);
-    pieces.set(id, { el: p, pin, square: { ...square } });
+    pieces.set(id, { el: p, pin, square: { ...square }, still });
+  }
+
+  // Takes a piece off the board: it fades out.
+  function remove(id) {
+    const { el } = get(id);
+    pieces.delete(String(id));
+    el.classList.add("gone");
+    setTimeout(() => el.remove(), token("fade"));
+  }
+
+  // A taken piece tips over and rolls into a box on the screen (client px,
+  // a bowl's, say), shrinking to fit it, and is taken off the board; resolves
+  // when it's there. With reduced motion it fades out.
+  async function roll(id, box) {
+    const { el, pin } = get(id);
+    pieces.delete(String(id));
+    el.classList.add("rolling");
+    if (reducedMotion()) {
+      el.classList.add("gone");
+      await sleep(token("fade"));
+    } else {
+      replay(pin, "tip");
+      await sleep(token("tip"));
+      const a = el.getBoundingClientRect();
+      el.style.transition = `translate ${token("roll")}ms ease-in-out, scale ${token("roll")}ms ease-in-out`;
+      el.style.translate = `${box.left + box.width / 2 - (a.left + a.width / 2)}px ${box.top + box.height / 2 - (a.top + a.height / 2)}px`;
+      el.style.scale = Math.min(box.width / a.width, box.height / a.height);
+      replay(pin, "roll");
+      await sleep(token("roll"));
+    }
+    el.remove();
   }
 
   // Moves a piece to a square from wherever it shows now (mid-drag or
@@ -161,6 +193,10 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
     el.append(m);
     return m;
   }
+  function pieceAt(square) {
+    for (const [id, p] of pieces) if (same(p.square, square)) return id;
+    return null;
+  }
   const marks = (kind) => el.querySelectorAll(kind ? `.mark.${kind}` : ".mark");
   const at = (node) => ({ c: Number(node.dataset.c), r: Number(node.dataset.r) });
 
@@ -169,8 +205,10 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
     cols,
     rows,
     place,
+    remove,
     move,
     drag,
+    roll,
     // A piece lands: a small squash.
     land: (id) => replay(get(id).pin, "land"),
     // A wrong square: the piece wiggles (with reduced motion, it dips).
@@ -178,10 +216,15 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
     // A piece lifts under a finger, or puts itself down.
     lift: (id, up) => get(id).el.classList.toggle("up", up),
     // Dots on squares, rippling out from `from` one ring at a time; they
-    // replace the dots before.
+    // replace the dots before. A dot on a piece sits on top of it: a piece
+    // to take.
     dots(list, from) {
       for (const d of marks("dot")) d.remove();
-      for (const sq of list) mark("dot", sq).style.setProperty("--ring-n", from ? ring(sq, from) : 0);
+      for (const sq of list) {
+        const d = mark("dot", sq);
+        d.style.setProperty("--ring-n", from ? ring(sq, from) : 0);
+        d.classList.toggle("take", pieceAt(sq) !== null);
+      }
     },
     mark,
     // Takes away the marks of one kind, or every mark.
@@ -189,10 +232,9 @@ export function createBoard(host, { cols = 8, rows = 8, label } = {}) {
       for (const m of marks(kind)) m.remove();
     },
     where: (id) => ({ ...get(id).square }),
-    pieceAt(square) {
-      for (const [id, p] of pieces) if (same(p.square, square)) return id;
-      return null;
-    },
+    pieceAt,
+    // Whether a piece is still: it can't be picked up.
+    still: (id) => get(id).still,
     // The square under a point on the screen (client px), or null off the board.
     squareAt(x, y) {
       const first = squares[0].getBoundingClientRect();
