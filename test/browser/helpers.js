@@ -76,11 +76,12 @@ after(async () => {
 
 // Opens path on a touch device in a fresh context. When test t ends, it
 // fails on any console error, page error or request to another origin
-// (those requests are blocked).
-export async function openPage(t, pathname, device = "tablet-landscape") {
+// (those requests are blocked). The service worker is blocked, so page.route()
+// sees every request, unless serviceWorkers is "allow".
+export async function openPage(t, pathname, device = "tablet-landscape", { serviceWorkers = "block" } = {}) {
   const [srv, browser] = await launch();
   const { origin } = new URL(srv.base);
-  const ctx = await browser.newContext({ viewport: DEVICES[device], hasTouch: true, isMobile: true });
+  const ctx = await browser.newContext({ viewport: DEVICES[device], hasTouch: true, isMobile: true, serviceWorkers });
   const problems = [];
   const checkOrigin = (url) => /^(https?|wss?):/.test(url) && new URL(url).origin.replace(/^ws/, "http") !== origin && problems.push(`request to ${url}`);
   await ctx.route((url) => url.protocol.startsWith("http") && url.origin !== origin, (route) => route.abort());

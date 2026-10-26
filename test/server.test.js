@@ -7,7 +7,7 @@ import path from "node:path";
 import { startServer } from "./browser/helpers.js";
 
 const HEADERS = {
-  "content-security-policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+  "content-security-policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
   "x-content-type-options": "nosniff",
   "referrer-policy": "no-referrer",
   "permissions-policy": "camera=(), microphone=(), geolocation=()",
@@ -53,6 +53,21 @@ test("home page and static files", async (t) => {
   const css = await fetch(`${srv.base}/home.css`);
   assert.equal(css.headers.get("content-type"), "text/css; charset=utf-8");
   assert.match(css.headers.get("cache-control"), /max-age=\d+/);
+});
+
+test("the manifest and the service worker", async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  for (const [file, type, cache] of [["/manifest.webmanifest", "application/manifest+json", /max-age=\d+/], ["/sw.js", "text/javascript; charset=utf-8", /^no-cache$/]]) {
+    const res = await fetch(srv.base + file);
+    assert.equal(res.status, 200, file);
+    assert.equal(res.headers.get("content-type"), type, file);
+    assert.match(res.headers.get("cache-control"), cache, file);
+    for (const [name, value] of Object.entries(HEADERS)) assert.equal(res.headers.get(name), value, `${name} on ${file}`);
+  }
+  const manifest = await (await fetch(`${srv.base}/manifest.webmanifest`)).json();
+  assert.equal(manifest.display, "standalone");
+  for (const icon of manifest.icons) assert.equal((await fetch(srv.base + icon.src)).headers.get("content-type"), icon.type, icon.src);
 });
 
 test("content types, folders and redirects", async (t) => {

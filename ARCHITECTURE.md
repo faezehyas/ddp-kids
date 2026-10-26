@@ -11,7 +11,8 @@ There are no accounts, analytics, cookies or third-party requests.
 server/          the static file server
 public/
   index.html     the home shelf (home.css, home.js), one box per game in games.json
-  engine/        shared by every game: theme, sound, board, input, ghost hand, prefs, parent area
+  sw.js          the service worker that keeps the site offline, beside manifest.webmanifest and the icons
+  engine/        shared by every game: theme, sound, board, input, ghost hand, prefs, parent area, offline
   <game>/        one folder per game: chess/ for now
 test/            server tests; test/browser/ for Playwright
 ```
@@ -51,6 +52,7 @@ and the row from the top, from 0.
 | `input.js` | `listen(board, onInput)`: touch, mouse and keyboard as one callback. `{ type: "tap", square, id }` for a tapped square (`id` is the piece on it, or `null`); `{ type: "drop", id, from, to }` for a piece dragged and let go (`to` is `null` off the board). For a drop, `onInput` returns `true` and moves the piece, or the piece snaps back to where the board has it (a game may have moved it mid-drag). Arrow keys move a focus ring; Enter or Space picks up and puts down |
 | `hand.js` | `createHand(board).show(steps)`: the ghost hand plays `press`, `drag`, `release` and `return` steps over the board, and resolves `true` when done or `false` when a touch or key cancelled it. With reduced motion, the target square pulses instead |
 | `parent.js` | `addParentCorner()`: the parent area, the only place with words. Every page calls it once. See below |
+| `offline.js` | `workOffline()`: registers `/sw.js`. Every page calls it once. See [Offline and install](#offline-and-install) |
 
 The board's methods:
 
@@ -121,20 +123,40 @@ comes back then plays round 2. Progress is saved in prefs as
 `progress.chess`: `met`, `piece`, `round` (0 or 1) and `filled`, so `/chess/`
 opens where the child left it.
 
+## Offline and install
+
+Once a page has been opened, the whole site works offline, and phones and
+tablets offer to add it to the home screen on their own; the site never asks.
+
+- `sw.js`, the service worker, keeps the files in `FILES` (every file under
+  `public/` but itself and the tests, a folder's `index.html` as the
+  folder) in a cache named after `VERSION`, and answers same-origin GETs
+  for them from there first (ignoring the query, so `/chess/?piece=B` is
+  `/chess/`); anything else goes to the network. `public/sw.test.js` fails
+  when `FILES` misses a file or lists one that isn't there, and when
+  `VERSION` isn't the hash of those files, giving the new one. A new
+  `VERSION` makes the browser store the new files beside the old ones; the
+  next visit, with no page left on the old ones, switches and drops them.
+- `manifest.webmanifest`: the name, `standalone`, any orientation, the
+  paper (`--paper`) as background and theme, and the icons: `icon.svg`, the
+  rook on paper, and `icon-192.png` and `icon-512.png`, drawn from it by
+  `node scripts/icons.js` (with Playwright), each also maskable. Every page
+  links the manifest and `icon-192.png` as its `apple-touch-icon`.
+
 ## Security headers
 
 On every response, including redirects and errors:
 
 | Header | Value |
 |---|---|
-| `Content-Security-Policy` | `default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'` |
+| `Content-Security-Policy` | `default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'` |
 | `X-Content-Type-Options` | `nosniff` |
 | `Referrer-Policy` | `no-referrer` |
 | `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
 
 The CSP has no `'unsafe-inline'`: styles go in files, and scripts set styles
 through the CSSOM (`el.style.width = …`), never through `style` attributes.
-HTML is `no-cache`; other files are cached for 5 minutes.
+HTML and `sw.js` are `no-cache`; other files are cached for 5 minutes.
 
 ## Safety rules for the child
 
@@ -161,7 +183,9 @@ automatic guards for free.
 - `npm run test:browser` runs `test/browser/*.test.js` with Playwright in
   Chromium. `openPage(t, path, device)` opens a page on one of three touch
   devices: `tablet-landscape` (1024x768), `tablet-portrait` (768x1024) and
-  `phone` (390x844). The test server also serves the test pages in
+  `phone` (390x844), with the service worker blocked so `page.route()` sees
+  every request (`{ serviceWorkers: "allow" }` lets it run, as
+  `offline.test.js` does). The test server also serves the test pages in
   `test/browser/fixtures/` under `/fixtures/`; the site never does.
   `engine.test.js` drives the engine through `fixtures/engine/`.
   Playwright stays out of `package.json`; the helpers
