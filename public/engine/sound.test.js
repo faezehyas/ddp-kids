@@ -89,7 +89,7 @@ test("the meter reads a 1 kHz sine at -20 dBFS as -23 LUFS", () => {
 });
 
 test("every sound stays under the shared loudness limit", () => {
-  assert.deepEqual(Object.keys(SOUNDS).sort(), ["arrive", "fit", "land", "nope"]);
+  assert.deepEqual(Object.keys(SOUNDS).sort(), ["arrive", "fit", "land", "nope", "take"]);
   for (const [name, voices] of Object.entries(SOUNDS)) {
     const lufs = loudness(render(voices));
     assert.ok(lufs <= LIMIT, `${name} is ${lufs.toFixed(1)} LUFS, over the limit of ${LIMIT}`);

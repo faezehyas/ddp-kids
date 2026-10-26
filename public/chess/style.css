@@ -2,7 +2,8 @@
    left corner, and below it the board, as big as fits, with the tray under
    it; in landscape the board sits between two margins as wide as the button,
    with the tray beside it. The board's box leaves room for the tray, which is
-   --tray-cols slots wide and --tray-rows high. */
+   --tray-cols slots wide and --tray-rows high, with the pips and the bowl
+   under it. */
 .stage {
   --tray-cols: 3;
   --tray-rows: 2;
@@ -18,7 +19,7 @@
 }
 .field {
   flex: none;
-  width: min(100cqw, 100cqh - var(--margin) - (var(--tray-rows) * var(--target) + (var(--tray-rows) + 2) * var(--margin) + var(--pip)));
+  width: min(100cqw, 100cqh - var(--margin) - (var(--tray-rows) * var(--target) + (var(--tray-rows) + 3) * var(--margin) + var(--pip) + var(--bowl)));
   aspect-ratio: 1;
 }
 @media (orientation: portrait) and (min-width: 500px) {
@@ -129,6 +130,51 @@
 .pips i.on {
   background: var(--honey);
 }
+/* The bowl, where taken ink pawns roll: a shallow sand dish, there in round
+   2. They lie in it in a little heap, and slide out when it empties. */
+.bowl {
+  position: relative;
+  width: var(--target);
+  height: var(--bowl);
+  border-radius: 0 0 50% 50% / 0 0 100% 100%;
+  background: var(--sand-deep);
+  box-shadow: inset 0 var(--ring) 0 var(--tray-edge);
+  opacity: 0;
+  transition: opacity var(--fade) ease;
+}
+.bowl.on {
+  opacity: 1;
+}
+.bowl i {
+  position: absolute;
+  bottom: 20%;
+  left: 12%;
+  width: calc(var(--target) / 2);
+  aspect-ratio: 1;
+  opacity: 0;
+  transition: opacity var(--fade) ease, translate var(--roll) ease-in;
+}
+.bowl i:nth-child(2) {
+  left: 30%;
+  bottom: 36%;
+}
+.bowl i:nth-child(3) {
+  left: 44%;
+}
+.bowl i.in {
+  opacity: 1;
+}
+.bowl.empty i {
+  opacity: 0;
+  translate: 0 50%;
+  transition-duration: var(--roll);
+}
+.bowl svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  rotate: 90deg;
+}
 @keyframes bob {
   50% {
     transform: translateY(-10%);
@@ -141,6 +187,9 @@
   .slot.wiggle svg {
     animation-name: dip;
     animation-timing-function: ease;
+  }
+  .bowl.empty i {
+    translate: none;
   }
 }
 

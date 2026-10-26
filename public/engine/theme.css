@@ -45,6 +45,7 @@
   --shadow-dash: 2.8 2.2;
   --outline-line: 1.6;
   --pip: 10px;
+  --bowl: 28px;
   --ring: 3px;
   --hand-opacity: 0.33;
   --faint-opacity: 0.5;
@@ -60,6 +61,8 @@
   --land: 340ms;
   --wiggle: 400ms;
   --hop: 420ms;
+  --tip: 450ms;
+  --roll: 900ms;
   --walk: 700ms;
   --walk-wait: 900ms;
   --dot-step: 60ms;
@@ -169,6 +172,10 @@ body {
   opacity: var(--dot-opacity);
   animation: pop var(--dot-pop) var(--ease-pop) calc(var(--ring-n, 0) * var(--dot-step)) both;
 }
+/* A dot on a piece to take sits on top of it. */
+.mark.dot.take {
+  z-index: 5;
+}
 .mark.shadow,
 .mark.pulse {
   z-index: 4;
@@ -214,7 +221,20 @@ body {
   touch-action: none;
   transition: opacity var(--fade) ease;
 }
-.piece.moving {
+/* A still piece (board.place()) sits under the others. */
+.piece.still {
+  z-index: 4;
+  cursor: pointer;
+}
+.piece.gone {
+  opacity: 0;
+}
+.piece.gone,
+.piece.rolling {
+  pointer-events: none;
+}
+.piece.moving,
+.piece.rolling {
   z-index: 6;
   transition: transform var(--move) var(--ease-move), opacity var(--fade) ease;
 }
@@ -249,6 +269,13 @@ body {
 }
 .pin.hop {
   animation: hop var(--hop) ease-in-out;
+}
+/* A taken piece tips over, then rolls away (board.roll()). */
+.pin.tip {
+  animation: tip var(--tip) ease-in forwards;
+}
+.pin.roll {
+  animation: roll var(--roll) ease-in-out forwards;
 }
 
 /* The keyboard's focus ring. */
@@ -451,6 +478,19 @@ body {
 @keyframes hop {
   50% {
     transform: scale(1.2) translateY(-18%);
+  }
+}
+@keyframes tip {
+  to {
+    transform: rotate(90deg);
+  }
+}
+@keyframes roll {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(450deg);
   }
 }
 @keyframes breathe {

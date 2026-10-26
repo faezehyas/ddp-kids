@@ -76,7 +76,7 @@ Chess (`public/chess/`) is the example for every step.
      the game's progress when the page loads.
    - `workOffline()` from `engine/offline.js` once.
 7. **Sound:** only the engine's: `play()` from `engine/sound.js` with
-   `land`, `fit`, `arrive` or `nope`. A new sound goes into `SOUNDS` in
+   `land`, `fit`, `arrive`, `take` or `nope`. A new sound goes into `SOUNDS` in
    `engine/sound.js`, where its test keeps it under the loudness limit.
 8. **Browser test:** `test/browser/<game>.test.js` (chess:
    `playground.test.js`) opens the page with `openPage()` on all three
