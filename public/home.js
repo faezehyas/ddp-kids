@@ -2,6 +2,7 @@
 // Enter or Space on it) lifts its lid with a wooden tok, then opens the game,
 // which picks up where the child left off.
 import { reducedMotion, token } from "./engine/board.js";
+import { workOffline } from "./engine/offline.js";
 import { addParentCorner } from "./engine/parent.js";
 import { play } from "./engine/sound.js";
 
@@ -44,6 +45,7 @@ function shelve(game) {
 }
 
 addParentCorner();
+workOffline();
 const games = await (await fetch("/games.json")).json();
 document.querySelector(".case").append(...games.map(shelve));
 

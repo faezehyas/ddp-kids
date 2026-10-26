@@ -52,7 +52,8 @@ Chess (`public/chess/`) is the example for every step.
    markup as the piece's dashed shadow. Give each piece a name for screen
    readers (chess: `NAMES`).
 5. **Page:** `index.html` links `/engine/theme.css` before its own
-   `style.css` and loads its script with `<script type="module">`. Its
+   `style.css`, the manifest and the touch icon (copy them from
+   `chess/index.html`), and loads its script with `<script type="module">`. Its
    fixed controls are the home button, an `<a href="/">` with a small house
    and `aria-label="Home"`, `--target` (64 px) square in the top left
    corner, and the parent corner in the top right (step 6). `style.css`
@@ -73,6 +74,7 @@ Chess (`public/chess/`) is the example for every step.
    - `addParentCorner()` from `engine/parent.js` once, for the parent area.
      Its reset puts `progress` back to `{}` and reloads the page, so read
      the game's progress when the page loads.
+   - `workOffline()` from `engine/offline.js` once.
 7. **Sound:** only the engine's: `play()` from `engine/sound.js` with
    `land`, `fit`, `arrive` or `nope`. A new sound goes into `SOUNDS` in
    `engine/sound.js`, where its test keeps it under the loudness limit.
@@ -85,10 +87,14 @@ Chess (`public/chess/`) is the example for every step.
 9. **Check by hand:** play it with touch at 1024x768 and 390x844 the way a
    4-year-old would: tap fast, tap wrong squares, drag off the board, and
    leave it alone for a while. Check 360 px wide and phone landscape too.
-10. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
+10. **Offline:** add the game's files to `FILES` in `public/sw.js`.
+    `npm test` fails until every file under `public/` is there, and gives
+    the new `VERSION` to set; any change to a file under `public/` needs
+    one.
+11. **Shelf:** add one entry to `public/games.json`: `slug`, `label`,
     `art` (the lid's picture as SVG markup in a 40x40 view box, using the
     classes `clay` and `clay-dark`) and `path` (`/<game>/`). The home shelf
     shows a box for it.
-11. **Docs:** describe the game in [ARCHITECTURE.md](ARCHITECTURE.md), move
+12. **Docs:** describe the game in [ARCHITECTURE.md](ARCHITECTURE.md), move
     it in [GAMES.md](GAMES.md) and open the PR with the template's
     checklist.

@@ -25,7 +25,7 @@ const PANEL = `
   </div>
   <p class="parent-note" hidden>Progress cleared. It starts again when you close this.</p>
   <h3>About</h3>
-  <p>Free board games for children who can't read yet. No ads, no sign-up, and nothing leaves this device.</p>
+  <p>Free board games for children who can't read yet. No ads, no sign-up, and nothing leaves this device. Once opened, it works offline: this browser keeps a copy of the site's files.</p>
   <h3>Privacy</h3>
   <p>This site saves one thing, in this browser's local storage: <code>${KEY}</code>. It holds the sound setting and your child's progress. No cookies, accounts or analytics. Right now it holds:</p>
   <pre class="parent-saved"></pre>

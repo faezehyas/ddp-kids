@@ -14,6 +14,7 @@
 import { createBoard, reducedMotion, sleep, token } from "/engine/board.js";
 import { createHand } from "/engine/hand.js";
 import { listen } from "/engine/input.js";
+import { workOffline } from "/engine/offline.js";
 import { addParentCorner } from "/engine/parent.js";
 import { getPrefs, setPrefs } from "/engine/prefs.js";
 import { play } from "/engine/sound.js";
@@ -65,6 +66,7 @@ if (TYPES.includes(wanted) && wanted !== type) meet(wanted);
 
 document.body.insertAdjacentHTML("afterbegin", DEFS);
 addParentCorner();
+workOffline();
 const board = createBoard(document.getElementById("field"), { label: "Chess board" });
 const hand = createHand(board);
 const tray = document.getElementById("tray");

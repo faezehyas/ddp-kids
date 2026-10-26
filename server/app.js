@@ -22,7 +22,7 @@ const MIME = {
 
 // On every response, including redirects and errors.
 const SECURITY_HEADERS = {
-  "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+  "Content-Security-Policy": "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
@@ -44,7 +44,8 @@ export function createApp({ publicDir = PUBLIC_DIR } = {}) {
     reply(req, res, 200, {
       "Content-Type": MIME[ext] || "application/octet-stream",
       "Content-Length": data.length,
-      "Cache-Control": ext === ".html" ? "no-cache" : "max-age=300",
+      // The service worker too, so a deploy reaches it at once.
+      "Cache-Control": ext === ".html" || path.basename(file) === "sw.js" ? "no-cache" : "max-age=300",
     }, data);
   }
 
