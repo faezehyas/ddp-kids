@@ -4,7 +4,7 @@
 // the network. A deploy that changes a file changes VERSION (sw.test.js
 // says what to), so the browser fetches the new files into a new cache and
 // switches to them on the next visit, when no page uses the old ones.
-const VERSION = "9726bd99040c";
+const VERSION = "fc526cc954b0";
 const CACHE = `ddp-kids-${VERSION}`;
 
 // Every file under public/ but this one and the tests; a folder's index.html

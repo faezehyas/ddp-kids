@@ -22,6 +22,6 @@ The browser tests skip themselves without Playwright: `npm install --global play
 
 ## Deploy
 
-Every push to `main` deploys to Wasmer Edge as the app `ddp-kids` (see `app.yaml`). The repo holds no secrets.
+Every push to `main` deploys to Wasmer Edge as the app `ddp-kids` (see `app.yaml`), served at https://kids.dailydoseofplay.com and https://kids.dailydoseofplay.wasmer.app. The repo holds no secrets.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [CONTRIBUTING.md](CONTRIBUTING.md) and [GAMES.md](GAMES.md).

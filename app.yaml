@@ -17,3 +17,6 @@ health_checks:
       expected_status_codes:
         - 200
       expected_body_includes: '"ok":true'
+domains:
+  - kids.dailydoseofplay.wasmer.app
+  - kids.dailydoseofplay.com
